@@ -30,27 +30,6 @@ LangGraph를 사용해 검색 → 재검색 → 정교화 → 답변 생성과 �
 `notebook/qwen3_es_qdrant_langgraph_rag.ipynb` 에 전체 파이프라인 포함  
 LLM 호출, Retriever, RAG Flow 실험 가능
 
----
-
-## 🏗 Architecture
-
-```mermaid
-flowchart LR
-    A[User Query] --> B[LLM (Qwen/Llama)]
-    B --> C[Query Rewriting / Expansion]
-    C --> D[Retriever]
-
-    D --> E[(ElasticSearch)]
-    D --> F[(Qdrant Vector DB)]
-
-    E --> G[Hybrid Reranker]
-    F --> G[Hybrid Reranker]
-
-    G --> H[RAG Context Builder]
-    H --> I[LLM Answer Generator]
-
-    I --> J[Final Response]
-```
 
 ---
 
