@@ -1,0 +1,16 @@
+# === Core orchestrator ===
+langgraph>=0.1.0
+
+# === Search backends ===
+elasticsearch=8.14.0
+qdrant-client>=1.9.0
+
+# === Embedding (Qwen 계열) ===
+transformers>=4.41.0
+accelerate>=0.30.0
+sentencepiece>=0.2.0
+
+# === HTTP & util ===
+requests>=2.31.0
+typing-extensions>=4.10.0
+numpy>=1.26.0

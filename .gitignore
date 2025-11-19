@@ -1,0 +1,34 @@
+# --- Python/venv ---
+venv/
+venv_*/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs / temp
+*.log
+*.tmp
+*.sqlite3
+*.db
+
+# 환경 변수 / 시크릿
+.env
+.env.*
+
+# 모델 파일 / 대형 바이너리 (LLM, Embeddings 등)
+*.gguf
+*.bin
+*.pth
+*.pt
+*.ckpt
+
+# 모델/데이터 폴더
+bartowski/
+models/
+data/raw/
+data/private/
