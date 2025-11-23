@@ -1,6 +1,6 @@
 # es_utils.py
 from typing import Dict, Any
-from config import es, ES_INDEX, EMBED_FIELD
+from init_setting import es, ES_INDEX, EMBED_FIELD
 
 def create_papers_index(dimension: int = 3072) -> None:
     """

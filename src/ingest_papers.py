@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 
 from elasticsearch import helpers
 
-from config import (
+from init_setting import (
     client, es, ES_INDEX, EMBED_FIELD,
     TITLE_FIELD, ABSTRACT_FIELD, CONTENT_FIELD,
     YEAR_FIELD, CITATION_FIELD, VENUE_FIELD, URL_FIELD,
