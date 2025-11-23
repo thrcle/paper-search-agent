@@ -1,117 +1,148 @@
-# 📚 Paper Search Agent  
-Hybrid IR + RAG + LangGraph 기반 논문 검색 에이전트
 
-이 프로젝트는 **LLM + 검색엔진(ElasticSearch + Qdrant)** 을 결합해  
-사용자가 입력한 키워드/질문에 대해 논문을 검색하고 요약/정리해주는  
-**Agentic RAG 기반 Paper Search System**입니다.
+```markdown
+# 🧠 Paper Search Agent (LangGraph + OpenAI + Elasticsearch)
 
-LangGraph를 사용해 검색 → 재검색 → 정교화 → 답변 생성과 같은  
-에이전트 흐름을 구성하였으며, 로컬 LLM(Qwen/Llama)과  
-임베딩 모델(bge-m3) 기반 하이브리드 검색을 제공합니다.
+대규모 논문 검색을 위한 **Agentic RAG 시스템** 프로젝트입니다.  
+OpenAI API와 Elasticsearch를 기반으로 LangGraph를 사용해 다음 단계를 자동화합니다:
+
+> **질문 분류 → 검색 전략 결정 → Sparse/Dense 검색 → 결과 융합 → 요약 생성**
 
 ---
 
-## 🚀 Features (기능 요약)
-
-### 🔍 1. 논문 검색 (Hybrid IR)
-- **Sparse 검색**: BM25(ElasticSearch)
-- **Dense 검색**: Qdrant + bge-m3 embedding
-- 두 점수를 혼합해 최적의 검색 결과 제공
-
-### 🧠 2. Agentic LangGraph Workflow
-- 쿼리 생성 → 문서 검색 → 재검색(Refine) → RAG 응답
-- 상태 흐름을 명확하게 관리하며 추론 과정 안정화
-
-### 🧩 3. RAG 기반 응답 생성
-- 검색된 문서 기반으로 LLM이 요약 및 근거 포함 답변 생성
-- hallucination 방지 (검색 기반 Evidence 우선)
-
-### 📝 4. 노트북 기반 실험 환경 제공
-`notebook/qwen3_es_qdrant_langgraph_rag.ipynb` 에 전체 파이프라인 포함  
-LLM 호출, Retriever, RAG Flow 실험 가능
-
+## 🚀 프로젝트 개요
+이 시스템은 LangGraph를 활용해 논문 검색 과정을 완전 자동화한 Agentic RAG 파이프라인입니다.  
+사용자의 질문을 이해하고, 키워드 기반 / 의미 기반 검색을 병렬 수행한 뒤  
+RRF 융합을 통해 결과를 랭킹하고 OpenAI 모델로 요약합니다.
 
 ---
 
-## 📦 Project Structure
-
-```
-paper-search-agent/
- ├── notebook/
- │    └── qwen3_es_qdrant_langgraph_rag.ipynb
- ├── docker-compose.yml
- ├── .gitignore
- └── README.md
+## 📂 폴더 구조
 ```
 
+PAPER_SEARCH_AGENT_PROJECT/
+├─ data/
+│   └─ papers.jsonl              # 샘플 논문 데이터
+│
+├─ src/
+│   ├─ settings.py               # OpenAI & ES 설정 및 초기화
+│   ├─ es_utils.py               # ES 인덱스 생성/삭제 유틸
+│   ├─ ingest_papers.py          # 논문 데이터 인덱싱 스크립트
+│   └─ paper_agent.ipynb         # LangGraph 기반 검색 Agent 노트북
+│
+├─ docker-compose.yml            # Elasticsearch 실행용
+├─ requirements.txt              # 의존성 목록
+├─ .gitignore                    # 환경파일, 모델, venv 제외
+└─ README.md
+
+````
+
 ---
 
-## 🔧 Installation
+## ⚙️ 환경 설정
+1. **.env 파일 생성 (프로젝트 루트에 위치)**
+   ```bash
+   OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   ES_HOST=localhost
+   ES_PORT=9200
+   ES_USER=elastic
+   ES_PASSWORD=changeme
+   ES_INDEX=papers_index
+````
 
-### 1) 가상환경 생성 & 패키지 설치
+2. **필수 패키지 설치**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Elasticsearch 실행**
+
+   ```bash
+   docker compose up -d
+   ```
+
+---
+
+## 🧩 실행 순서
+
+### ① 데이터 인덱싱
 
 ```bash
-python -m venv venv
-source venv/bin/activate
+python src/ingest_papers.py
+```
+
+→ `data/papers.jsonl`의 논문 데이터를 Elasticsearch에 업로드하고 인덱스 생성
+
+### ② Agent 실행 (Jupyter Notebook)
+
+`src/paper_agent.ipynb`를 열고 아래 셀을 실행:
+
+```python
+run_query("RAG retriever 관련 최신 논문 알려줘")
+```
+
+결과:
+
+* LangGraph가 질문 유형을 분류하고
+* Sparse + Dense 검색 수행 후 RRF로 결과 통합
+* OpenAI 모델이 관련 논문을 요약 및 설명 출력
+
+---
+
+## 🧱 주요 구성 요소
+
+| 모듈                    | 역할                                 |
+| --------------------- | ---------------------------------- |
+| **settings.py**       | `.env` 로드 및 OpenAI/ES 클라이언트 초기화    |
+| **es_utils.py**       | 인덱스 생성, 삭제, 매핑 관리                  |
+| **ingest_papers.py**  | `papers.jsonl` 데이터를 임베딩 후 인덱싱      |
+| **paper_agent.ipynb** | LangGraph 기반 Agent 흐름 실행 (검색 + 요약) |
+
+---
+
+## 🧠 기술 스택
+
+* **LangGraph** – Agentic Workflow 구성
+* **Elasticsearch** – BM25 + dense vector hybrid 검색
+* **OpenAI API** – `gpt-4o` / `text-embedding-3-large`
+* **Python-dotenv** – 환경 변수 관리
+
+---
+
+## 🔒 주의사항
+
+* `.env`, `venv_paper_agent/`, `*.gguf` 등은 Git에 포함되지 않습니다.
+* API Key는 절대 커밋하지 말고 `.env`로만 관리하세요.
+* `data/papers.jsonl`은 샘플 데이터로, 실제 대용량 데이터는 `.gitignore`에 추가하세요.
+
+---
+
+## 🧩 향후 개선 방향
+
+* LangGraph Memory 추가로 질의 이력 반영
+* Hybrid retrieval 가중치 자동 최적화
+* Paper Summarizer Agent 분리 및 API화
+
+---
+
+## ✨ 예시 명령어 요약
+
+```bash
+# 환경 구성
 pip install -r requirements.txt
+
+# Elasticsearch 실행
+docker compose up -d
+
+# 논문 인덱싱
+python src/ingest_papers.py
+
+# Agent 실행 (노트북)
+jupyter lab src/paper_agent.ipynb
 ```
 
 ---
 
-## 🤖 LLM / Embedding 모델 다운로드 (중요)
-
-이 레포는 모델 파일을 포함하지 않습니다.  
-로컬에서 직접 다운받아 아래 구조로 저장하세요.
-
 ```
-models/
- ├── llm/
- │    └── llama-3.1-8b-instruct.Q4_K_M.gguf   (예시)
- └── embed/
-      └── bge-m3-q4_k_m.gguf
+---
 ```
-
-### 예시 다운로드 링크
-- **Llama 3.1 8B Instruct GGUF**: HuggingFace / TheBloke / bartowski 중 택1  
-- **bge-m3 embedding GGUF**: BAAI/bge-m3
-
----
-
-## 🐳 Run with Docker (ElasticSearch + Qdrant)
-
-```bash
-docker-compose up -d
-```
-
-실행 후:
-- ES: `localhost:9200`
-- Qdrant: `localhost:6333`
-
----
-
-## 🧪 Run Notebook
-
-```bash
-jupyter lab
-```
-
-- `notebook/qwen3_es_qdrant_langgraph_rag.ipynb` 열어서 실행  
-- 검색 → RAG → 응답 생성 전체 파이프라인 테스트 가능
-
----
-
-## 📌 TODO (Roadmap)
-
-- [ ] 검색 재랭킹 개선 (RRF → Learned Reranker)
-- [ ] LangGraph Memory 적용
-- [ ] Fine-grained Query Rewriting
-- [ ] Multi-step Deep Search
-- [ ] Agent tools 자동 확장
-
-
----
-
-## ⭐ License
-
-MIT License  
-모델 파일은 각 제공처의 라이선스를 따릅니다.
