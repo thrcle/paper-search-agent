@@ -25,7 +25,7 @@ PAPER_SEARCH_AGENT_PROJECT/
 ├─ src/
 │   ├─ settings.py               # OpenAI & ES 설정 및 초기화
 │   ├─ es_utils.py               # ES 인덱스 생성/삭제 유틸
-│   ├─ ingest_papers.py          # 논문 데이터 인덱싱 스크립트
+│   ├─ index_papers.py          # 논문 데이터 인덱싱 스크립트
 │   └─ paper_agent.ipynb         # LangGraph 기반 검색 Agent 노트북
 │
 ├─ docker-compose.yml            # Elasticsearch 실행용
