@@ -46,7 +46,7 @@ PAPER_SEARCH_AGENT_PROJECT/
    ES_USER=elastic
    ES_PASSWORD=changeme
    ES_INDEX=papers_index
-````
+```
 
 2. **필수 패키지 설치**
 
