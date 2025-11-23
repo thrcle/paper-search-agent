@@ -1,5 +1,4 @@
 
-```markdown
 # 🧠 Paper Search Agent (LangGraph + OpenAI + Elasticsearch)
 
 대규모 논문 검색을 위한 **Agentic RAG 시스템** 프로젝트입니다.  
