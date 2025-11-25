@@ -34,7 +34,6 @@ PAPER_SEARCH_AGENT_PROJECT/
 └─ README.md
 
 ````
-
 ---
 
 ## ⚙️ 환경 설정
@@ -59,6 +58,22 @@ PAPER_SEARCH_AGENT_PROJECT/
    ```bash
    docker compose up -d
    ```
+
+---
+
+## 💾 데이터셋 설정
+
+### 2023~2025년도, 각 년도별 인용수 기준 각 2000 개씩 전체 6개 수집
+- 각 년도별 AI 관련 논문 1만개 수집 후, 인용수 기준 2000개씩 선정
+- 빠르고 높은 성능의 'all-MiniLM-L6-v2' 모델로 임베딩 적용
+- jsonl data size : 20,228 , vector size : 384, chunk size : 500
+  
+
+**Sample Dataset **
+
+```json
+[샘플 데이터 구조 (첫 번째 항목)] { "id": "2312.00752v2_0", "paper_id": "[http://arxiv.org/abs/2312.00752v2](http://arxiv.org/abs/2312.00752v2)", "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces", "published": "2023-12-01", "citation_count": 4579, "text": "Foundation models, now powering most of the exciting applications in deep learning,... but they have not performed as well as attention on important modalities such as language", "embedding": [ -0.04355737194418907, -0.10571599006652832, ... -0.04330563545227051, -0.006554255727678537 ], "metadata": { "source": "arxiv", "categories": [ "cs.LG", "cs.AI" ] } }
+```
 
 ---
 
