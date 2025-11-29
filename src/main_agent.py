@@ -43,10 +43,10 @@ def run_query(query: str, memory=None, threshold: float = 0.6) -> AgentState:
 
 
 if __name__ == "__main__":
-    # q = "최근 RAG retriever 성능 향상 관련 주요 논문 알려줘"
+    q = "최근 RAG retriever 성능 향상 관련 주요 논문 알려줘"
     # q = "self-attention 에 대한 논문 알려줘"
     # q= "Transformer 모델의 한계점과 극복 방안에 대한 최신 연구 동향은?"
-    q="추천 시스템에 대한 최신 연구 동향과 주요 논문들을 알려줘"
+    # q="추천 시스템에 대한 최신 연구 동향과 주요 논문들을 알려줘"
     result = run_query(q)
     print(f"질문: {q}")
     print("\n[답변]\n", result["answer"])

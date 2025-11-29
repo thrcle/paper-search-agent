@@ -48,16 +48,83 @@ def strategy_agent(state: AgentState) -> AgentState:
 
 
 # --- 3. BM25 검색 ---
+
+"""
+이 BM25 검색에서는 Elasticsearch의 function_score를 이용해
+논문 인용수(citations)에 가중치를 부여함.
+
+- 기존 BM25 점수: 텍스트 유사도 기반
+- field_value_factor: 인용수 필드 값으로 추가 점수 부여
+  - factor: 0.001 → 인용수 1000당 약 +1점
+  - modifier: "log1p" → 인용수 증가에 따라 점수는 완만하게 상승(log scale)
+- boost_mode: "sum" → BM25 점수 + 인용수 점수를 합산
+
+즉, 유사도가 비슷한 두 논문 중에서는 인용수가 높은 논문이
+조금 더 상위로 랭크되도록 조정한 구조.
+"""
+
+
+# def keyword_search_agent(state: AgentState) -> AgentState:
+#     query = state["query_text"]
+#     strategy = state.get("search_strategy", "hybrid")
+#     if strategy not in ("sparse", "hybrid"):
+#         return {"keyword_hits": []}
+
+#     body = {
+#         "size": TOP_K_SPARSE,
+#         "query": {"multi_match": {"query": query, "fields": [TITLE_FIELD, CONTENT_FIELD]}},
+#     }
+#     resp = es.search(index=ES_INDEX, body=body)
+#     hits = resp["hits"]["hits"]
+
+#     return {
+#         "keyword_hits": [
+#             {
+#                 "id": h["_id"],
+#                 "score": h["_score"],
+#                 "title": h["_source"].get(TITLE_FIELD),
+#                 "content": h["_source"].get(CONTENT_FIELD),
+#                 "year": h["_source"].get(YEAR_FIELD),
+#                 "citations": h["_source"].get(CITATION_FIELD, 0),
+#             }
+#             for h in hits
+#         ]
+#     }
+# --- 3. BM25 검색 (인용수 가중치 반영) ---
 def keyword_search_agent(state: AgentState) -> AgentState:
     query = state["query_text"]
     strategy = state.get("search_strategy", "hybrid")
     if strategy not in ("sparse", "hybrid"):
         return {"keyword_hits": []}
 
+    # citations 가중치를 주는 function_score 쿼리
     body = {
         "size": TOP_K_SPARSE,
-        "query": {"multi_match": {"query": query, "fields": [TITLE_FIELD, CONTENT_FIELD]}},
+        "query": {
+            "function_score": {
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": [TITLE_FIELD, CONTENT_FIELD],
+                        "type": "best_fields",
+                    }
+                },
+                "boost_mode": "sum",      # 텍스트 점수 + 가중치 합산
+                "score_mode": "sum",
+                "functions": [
+                    {
+                        "field_value_factor": {
+                            "field": CITATION_FIELD,
+                            "factor": 0.001,        # 인용수 1000 = +1점 정도
+                            "modifier": "log1p",    # 로그 스케일로 완화
+                            "missing": 0
+                        }
+                    }
+                ],
+            }
+        },
     }
+
     resp = es.search(index=ES_INDEX, body=body)
     hits = resp["hits"]["hits"]
 
@@ -74,6 +141,7 @@ def keyword_search_agent(state: AgentState) -> AgentState:
             for h in hits
         ]
     }
+
 
 
 # --- 4. Dense 검색 ---
