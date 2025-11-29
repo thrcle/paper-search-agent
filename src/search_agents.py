@@ -16,6 +16,7 @@ from settings import (
     TOP_K_SPARSE,
     TOP_K_DENSE,
     TOP_K_FINAL,
+    URL_FIELD,   
 )
 from model_utils import get_embedding, call_llm_json, call_llm_text
 
@@ -157,6 +158,7 @@ def keyword_search_agent(state: AgentState) -> AgentState:
                 "content": h["_source"].get(CONTENT_FIELD),
                 "year": h["_source"].get(YEAR_FIELD),
                 "citations": h["_source"].get(CITATION_FIELD, 0),
+                 "url": h["_source"].get(URL_FIELD, ""), 
             }
             for h in hits
         ]
@@ -188,6 +190,7 @@ def semantic_search_agent(state: AgentState) -> AgentState:
                 "content": h["_source"].get(CONTENT_FIELD),
                 "year": h["_source"].get(YEAR_FIELD),
                 "citations": h["_source"].get(CITATION_FIELD, 0),
+                 "url": h["_source"].get(URL_FIELD, ""),
             }
             for h in hits
         ]
