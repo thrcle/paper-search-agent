@@ -48,7 +48,7 @@ except LookupError:
 # nltk.download('punkt', quiet=True)
 
 # ---------------------------
-# 1️⃣ 문장 단위 의미 유사도 평가
+# 1️ 문장 단위 의미 유사도 평가
 # ---------------------------
 def evaluate_sentence_level(query: str, answer: str) -> float:
     """
@@ -75,7 +75,7 @@ def evaluate_sentence_level(query: str, answer: str) -> float:
 
 
 # ---------------------------
-# 2️⃣ 키워드 기반 정밀도 평가
+# 2️ 키워드 기반 정밀도 평가
 # ---------------------------
 def keyword_precision(query: str, answer: str, top_k: int = 5) -> float:
     """
@@ -100,14 +100,31 @@ def keyword_precision(query: str, answer: str, top_k: int = 5) -> float:
 
 
 # ---------------------------
-# 3️⃣ 종합 평가
+# 3️ 종합 평가
 # ---------------------------
-def evaluate_answer_relevance(query: str, answer: str) -> float:
+# def evaluate_answer_relevance(query: str, answer: str) -> float:
+#     """
+#     문장단위 유사도 + 키워드 정밀도를 혼합해 최종 점수 산출.
+#     기본적으로 semantic 70% + keyword precision 30% 가중.
+#     """
+#     sem_score = evaluate_sentence_level(query, answer)
+#     kw_score = keyword_precision(query, answer)
+#     final_score = 0.7 * sem_score + 0.3 * kw_score
+#     return round(final_score, 4)
+def evaluate_answer_relevance(query: str, answer: str, utterance_type: str = "NL_TOPIC") -> float:
     """
-    문장단위 유사도 + 키워드 정밀도를 혼합해 최종 점수 산출.
-    기본적으로 semantic 70% + keyword precision 30% 가중.
+    질문 유형(utterance_type)에 따라 semantic/keyword 비중을 동적으로 조절.
     """
     sem_score = evaluate_sentence_level(query, answer)
     kw_score = keyword_precision(query, answer)
-    final_score = 0.7 * sem_score + 0.3 * kw_score
+
+    # 가중치 동적 조정
+    if utterance_type == "KEYWORD_TOPIC":
+        w_sem, w_kw = 0.3, 0.7
+    elif utterance_type == "SPECIFIC_PAPER":
+        w_sem, w_kw = 0.5, 0.5
+    else:  # NL_TOPIC
+        w_sem, w_kw = 0.8, 0.2
+
+    final_score = w_sem * sem_score + w_kw * kw_score
     return round(final_score, 4)

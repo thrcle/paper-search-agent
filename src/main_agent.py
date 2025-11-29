@@ -27,17 +27,42 @@ def run_query(query: str, memory=None, threshold: float = 0.6) -> AgentState:
     state.update(merge_and_select_agent(state))
     state.update(memory_update_agent(state))
 
+    # # ---- 품질 평가 & 외부 보완 ----
+    # answer = state.get("answer", "")
+    # score = evaluate_answer_relevance(query, answer)
+    # state["relevance_score"] = score
+
+    # print(f"📊 Relevance Score: {score}")
+
+    # if score < threshold:
+    #     print("⚠️ 관련도 낮음 → 외부 검색 보완 실행")
+    #     extra_info = fetch_external_answer(query)
+    #     state["answer"] = f"{answer}\n\n{extra_info}"
+
     # ---- 품질 평가 & 외부 보완 ----
+    # answer = state.get("answer", "")
+    # utter_type = state.get("utterance_type", "NL_TOPIC")  # 👈 분류 결과 반영
+    # score = evaluate_answer_relevance(query, answer, utter_type)  # 👈 동적 가중치 적용
+    # state["relevance_score"] = score
+
     answer = state.get("answer", "")
-    score = evaluate_answer_relevance(query, answer)
+    utter_type = state.get("utterance_type", "NL_TOPIC")
+    strategy = state.get("search_strategy", "unknown")
+
+    score = evaluate_answer_relevance(query, answer, utter_type)
     state["relevance_score"] = score
 
-    print(f"📊 Relevance Score: {score}")
+    print("─────────────────────────────────────────────")
+    print(f"🧭 Search Strategy : {strategy}")
+    print(f"💬 Utterance Type  : {utter_type}")
+    print(f"📊 Relevance Score : {score:.4f}")
+    print("─────────────────────────────────────────────")
 
     if score < threshold:
-        print("⚠️ 관련도 낮음 → 외부 검색 보완 실행")
+        print("관련도 낮음 → 외부 검색 보완 실행")
         extra_info = fetch_external_answer(query)
         state["answer"] = f"{answer}\n\n{extra_info}"
+
 
     return state
 
