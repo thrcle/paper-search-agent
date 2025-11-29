@@ -9,8 +9,8 @@ from search_agents import (
 )
 from memory_agent import memory_update_agent
 from evaluation import evaluate_answer_relevance
-from external_search import fetch_external_answer
-
+# from external_search import fetch_external_answer
+from external_search import agentic_fetch_external_answer
 
 def run_query(query: str, memory=None, threshold: float = 0.6) -> AgentState:
     """검색 → 요약 → 평가 → 보완 → 메모리 저장 파이프라인"""
@@ -58,24 +58,30 @@ def run_query(query: str, memory=None, threshold: float = 0.6) -> AgentState:
     print(f"📊 Relevance Score : {score:.4f}")
     print("─────────────────────────────────────────────")
 
+    # if score < threshold:
+    #     print("관련도 낮음 → 외부 검색 보완 실행")
+    #     extra_info = fetch_external_answer(query)
+    #     state["answer"] = f"{answer}\n\n{extra_info}"
     if score < threshold:
-        print("관련도 낮음 → 외부 검색 보완 실행")
-        extra_info = fetch_external_answer(query)
+        print("⚠️ 관련도 낮음 → 외부 검색 보완 판단 중...")
+        extra_info = agentic_fetch_external_answer(query, utter_type, score)
         state["answer"] = f"{answer}\n\n{extra_info}"
+
 
 
     return state
 
 
 if __name__ == "__main__":
-    q = "최근 RAG retriever 성능 향상 관련 주요 논문 알려줘"
+    # q = "최근 RAG retriever 성능 향상 관련 주요 논문 알려줘"  -- hybrid
+    q = "추천 시스템의 최근 연구 경향은?"
     # q = "self-attention 에 대한 논문 알려줘"
     # q= "Transformer 모델의 한계점과 극복 방안에 대한 최신 연구 동향은?"
     # q="추천 시스템에 대한 최신 연구 동향과 주요 논문들을 알려줘"
     result = run_query(q)
     print(f"질문: {q}")
     print("\n[답변]\n", result["answer"])
-    print(f"\n📊 관련도 점수: {result.get('relevance_score')}")
+    # print(f"\n📊 관련도 점수: {result.get('relevance_score')}")
     print("\n[상위 논문 목록]")
     for d in result.get("top_papers", []):
         print(f"- {d['title']} ({d['year']})")
