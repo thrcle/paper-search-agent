@@ -21,16 +21,36 @@ from model_utils import get_embedding, call_llm_json, call_llm_text
 
 
 # --- 1. 인텐트 분류 ---
-def classify_utterance_agent(state: AgentState) -> AgentState:
+# def classify_utterance_agent(state: AgentState) -> AgentState:
+#     query = state["query_text"].strip()
+
+#     system_prompt = """
+# 너는 논문 검색 에이전트의 인텐트 분류기다.
+# 유저의 질의를 아래 중 하나로 분류하라.
+# - KEYWORD_TOPIC
+# - NL_TOPIC
+# - SPECIFIC_PAPER
+# 반드시 JSON으로 {"utterance_type": "..."} 형식으로 출력.
+# """
+#     result = call_llm_json(system_prompt, f"질문: {query}")
+#     return {"utterance_type": result.get("utterance_type", "NL_TOPIC")}
+def classify_utterance_agent(state: dict) -> dict:
     query = state["query_text"].strip()
 
     system_prompt = """
 너는 논문 검색 에이전트의 인텐트 분류기다.
-유저의 질의를 아래 중 하나로 분류하라.
-- KEYWORD_TOPIC
-- NL_TOPIC
-- SPECIFIC_PAPER
-반드시 JSON으로 {"utterance_type": "..."} 형식으로 출력.
+유저의 질의를 아래 타입 중 하나로 분류하라.
+
+- KEYWORD_TOPIC    : 키워드 위주의 짧은 검색어 (예: "RAG retrieval 비교", "BERT 추천 시스템")
+- NL_TOPIC         : 자연어 문장 형태의 정보 탐색 (예: "RAG 성능 향상 최신 연구 알려줘")
+- SPECIFIC_PAPER   : 특정 논문/저자/연도 등을 지목하는 경우 (예: "Attention is All You Need 논문 요약해줘")
+- MEMORY_QUERY     : 이전 대화/질문/추천 내역을 물어보는 경우
+                     예) "내 첫번째 질문이 뭐였지?"
+                         "방금 추천해 준 첫번째 논문 다시 알려줘"
+                         "이전에 추천해준 논문들 요약해줘"
+
+반드시 JSON으로만 답하라.
+예시: {"utterance_type": "NL_TOPIC"}
 """
     result = call_llm_json(system_prompt, f"질문: {query}")
     return {"utterance_type": result.get("utterance_type", "NL_TOPIC")}
