@@ -1,7 +1,12 @@
 # Dr.Paper – AI 논문 검색 · 진단 에이전트
 
-Elasticsearch + Vector Search + LangGraph + LLM을 이용한
-연구 주제 기반 논문 검색 및 요약 추천 시스템.
+Elasticsearch  + LangGraph + LLM 을 이용해서
+연구 주제에 맞는 논문을 검색/요약/추천해 주는 에이전트 프로젝트.
+
+* BM25(키워드) + Dense Embedding(의미 기반) 하이브리드 검색
+* LangGraph 로 상태/워크플로우 관리
+* 메모리 기반 Multi-turn 질의 지원
+* 외부 논문 API(Tavily/OpenAlex 등)로 보완 검색
 
 ---
 
@@ -172,6 +177,14 @@ streamlit run app.py
 [답변]
 RAG의 효율적 Retrieval 개선에 관한 주요 연구는 MAIN-RAG(2024), Self-RAG(2023) 등이 있습니다.
 ```
+
+---
+## 💻 Streamlit UI 구성
+주요 기능
+🔎 검색창	자연어 또는 키워드 질의 입력 (예: “LLM 관련 최신 논문”)
+🤖 AI 진단	질의 유형, 전략, 관련도 점수, 검색 경로 표시
+💊 논문 카드	각 논문 제목, 인용수, 연도, 요약 표시 및 URL 클릭 가능
+📝 진료 기록	이전 질의 내역 및 메모리 기반 대화 히스토리 확인
 
 ---
 
