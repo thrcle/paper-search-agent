@@ -14,3 +14,4 @@ class AgentState(TypedDict, total=False):
     top_papers: List[Dict[str, Any]]
     answer: str
     memory: List[Dict[str, Any]]
+    relevance_score: float

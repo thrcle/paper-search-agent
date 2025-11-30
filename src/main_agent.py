@@ -25,9 +25,12 @@ def evaluate_answer_agent(state: AgentState) -> AgentState:
     utter_type = state.get("utterance_type", "NL_TOPIC")
 
     score = evaluate_answer_relevance(query, answer, utter_type)
-    state["relevance_score"] = score
-    return state
-
+    # print("⚠️ 답변 관련도 평가 완료:", score)
+    # state["relevance_score"] = score
+    # return state
+    return {
+        "relevance_score": score
+    }
 
 def external_search_agent(state: AgentState) -> AgentState:
     """검색 결과가 부족할 때 외부 API(Tavily/OpenAlex) 호출"""
@@ -124,6 +127,13 @@ def run_query(query: str, memory=None, threshold: float = 0.6) -> AgentState:
     graph = build_graph()
     final_state: AgentState = graph.invoke(state) or {}
 
+    # print("🧪 [run_query] === graph.invoke 결과 ===")
+    # print(f"  - final_state keys      : {list(final_state.keys())}")
+    # print(f"  - raw relevance_score   : {final_state.get('relevance_score')}")
+    # print(f"  - raw utterance_type    : {final_state.get('utterance_type')}")
+    # print(f"  - raw search_strategy   : {final_state.get('search_strategy')}")
+    # print()
+
     # 기본 정보 추출
     answer = final_state.get("answer", "")
     utter_type = final_state.get("utterance_type", "NL_TOPIC")
@@ -178,13 +188,14 @@ if __name__ == "__main__":
     memory = []
     q1 = "RAG 관련 논문 추천"
     q2 = "llm 관련 논문을 추천해주세요"
-    q3 = "내 첫번째 질문이 뭐였지?"
-    q4 = "RAG 관련 논문 검색"          # hybrid
+    q3 = "내 첫번째 질문이 뭐였지?"       # 메모리 확인용 
+    q4 = "RAG 관련 논문 검색"           # hybrid
     q5 = "RAG"                      # sparse
     q6 ="RAG 성능 향상 최신 연구 알려줘"
     # Attention is All You Need 논문 요약해줘
 
     for q in [q1, q2, q3,q4, q5, q6]:
+    # for q in [q1]:
         print(f"\n\n===== 🧠 질문: {q} =====")
         result = run_query(q, memory=memory)
         memory = result["memory"]

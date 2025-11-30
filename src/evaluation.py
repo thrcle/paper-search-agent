@@ -195,6 +195,49 @@ chars={answer_len}, sentences={sents_cnt}
 # ---------------------------
 # 4️ 종합 평가 (Agentic Weight 적용)
 # ---------------------------
+# def evaluate_answer_relevance(
+#     query: str,
+#     answer: str,
+#     utterance_type: str = "NL_TOPIC"
+# ) -> float:
+#     """
+#     질문 유형 + LLM 기반 agentic decision 으로
+#     semantic / keyword 가중치를 동적으로 조절해 최종 점수 계산.
+#     점수 스케일을 완화해서, '어느 정도 관련 있는 답변'은
+#     너무 0 근처로 떨어지지 않도록 보정한다.
+#     """
+#     # 답변이 거의 없으면 그냥 0
+#     if not answer or not answer.strip():
+#         return 0.0
+
+#     # 기본 점수 계산
+#     sem_score = evaluate_sentence_level(query, answer)
+#     kw_score = keyword_precision(query, answer)
+
+#     # LLM 기반 가중치 (실패 시 기본값)
+#     w_sem, w_kw = get_dynamic_weights_agentic(query, answer, utterance_type)
+
+#     raw = w_sem * sem_score + w_kw * kw_score
+#     # 혹시라도 범위 나가면 [0, 1]로 클램프
+#     raw = max(0.0, min(raw, 1.0))
+
+#     # -------------------------
+#     # 점수 완화 로직
+#     # -------------------------
+#     # 1) semantic/keyword 둘 다 거의 0이면 → 진짜 무관한 답변이므로
+#     #    0~0.2 사이에서만 움직이도록 유지
+#     if sem_score < 0.05 and kw_score < 0.05:
+#         final = 0.2 * raw      # 0 ~ 0.2
+
+#     else:
+#         # 2) 그 외 "조금이라도 관련 있음" → 최소 0.3은 보장
+#         #    raw(0~1)를 0.3~1.0으로 선형 맵핑
+#         #    raw=0  -> 0.3
+#         #    raw=1  -> 1.0
+#         final = 0.3 + 0.7 * raw
+
+#     return round(final, 4)
+
 def evaluate_answer_relevance(
     query: str,
     answer: str,
@@ -208,32 +251,38 @@ def evaluate_answer_relevance(
     """
     # 답변이 거의 없으면 그냥 0
     if not answer or not answer.strip():
+        print("[EVAL] 빈 답변 감지 → 0 반환")
         return 0.0
 
     # 기본 점수 계산
     sem_score = evaluate_sentence_level(query, answer)
     kw_score = keyword_precision(query, answer)
+    # print("[EVAL] 기본 점수 계산 완료")
+    # print(f"  semantic_score : {sem_score:.4f}")
+    # print(f"  keyword_score  : {kw_score:.4f}")
 
     # LLM 기반 가중치 (실패 시 기본값)
     w_sem, w_kw = get_dynamic_weights_agentic(query, answer, utterance_type)
+    # print("[EVAL] 가중치 계산 완료")
+    # print(f"  w_sem : {w_sem:.4f}")
+    # print(f"  w_kw  : {w_kw:.4f}")
 
     raw = w_sem * sem_score + w_kw * kw_score
-    # 혹시라도 범위 나가면 [0, 1]로 클램프
     raw = max(0.0, min(raw, 1.0))
+    # print("[EVAL] raw 점수 계산")
+    # print(f"  raw : {raw:.4f}")
 
-    # -------------------------
     # 점수 완화 로직
-    # -------------------------
-    # 1) semantic/keyword 둘 다 거의 0이면 → 진짜 무관한 답변이므로
-    #    0~0.2 사이에서만 움직이도록 유지
     if sem_score < 0.05 and kw_score < 0.05:
-        final = 0.2 * raw      # 0 ~ 0.2
-
+        final = 0.2 * raw
+        # print("[EVAL] 두 점수 모두 낮음 → 완화 0.2배 적용")
     else:
-        # 2) 그 외 "조금이라도 관련 있음" → 최소 0.3은 보장
-        #    raw(0~1)를 0.3~1.0으로 선형 맵핑
-        #    raw=0  -> 0.3
-        #    raw=1  -> 1.0
         final = 0.3 + 0.7 * raw
+        # print("[EVAL] 관련 있음 → 0.3~1.0 선형 맵핑")
+
+    # print(f"[EVAL] 최종 점수 : {final:.4f}")
+    # print(f"  query  : {query[:60]!r}")
+    # print(f"  answer : {answer[:100]!r}")
+    # print("-" * 60)
 
     return round(final, 4)
