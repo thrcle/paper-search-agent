@@ -1,4 +1,16 @@
-# memory_agent.py
+
+#  대화 기반 논문 검색 에이전트에서 "대화 메모리" 관리
+#  사용자의 이전 질의(query_text), 답변(answer), 추천 논문(top_papers)을 저장하고 다음 턴에서 "과거 대화 참조형 질의"가 들어오면, 검색 없이 메모리만으로 응답 생성
+#
+# 핵심 흐름:
+#   (1) memory_update_agent  →  대화 기록을 state["memory"]에 누적 저장
+#   (2) memory_llm_agent     →  저장된 memory를 기반으로 LLM이 답변 생성
+#
+#  RAG 파이프라인에서 검색 후 단계(Post-processing)에 들어가거나, 과거 질의 참조(MEMORY_QUERY) 시에만 실행되는 보조 agent
+
+
+
+
 from typing import Dict, Any, List
 from model_utils import call_llm_text  # 이미 쓰고 있는 LLM 호출 함수라고 가정
 

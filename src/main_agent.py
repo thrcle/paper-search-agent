@@ -179,10 +179,12 @@ if __name__ == "__main__":
     q1 = "RAG 관련 논문 추천"
     q2 = "llm 관련 논문을 추천해주세요"
     q3 = "내 첫번째 질문이 뭐였지?"
-    q4 = "RAG 관련 논문 검색"
-    q5 = "RAG"
+    q4 = "RAG 관련 논문 검색"          # hybrid
+    q5 = "RAG"                      # sparse
+    q6 ="RAG 성능 향상 최신 연구 알려줘"
+    # Attention is All You Need 논문 요약해줘
 
-    for q in [q1, q2, q3,q4, q5]:
+    for q in [q1, q2, q3,q4, q5, q6]:
         print(f"\n\n===== 🧠 질문: {q} =====")
         result = run_query(q, memory=memory)
         memory = result["memory"]

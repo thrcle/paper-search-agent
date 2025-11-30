@@ -1,5 +1,7 @@
 # model_utils.py
-# 임베딩 + LLM 호출 유틸리티 함수들 정의 
+# 임베딩모델(BGE) , LLM(OpenAI) 호출 유틸리티 함수들 정의 
+# 검색/유사도 계산용 벡터는 BGE로 만들고 답변 생성, 분류, 요약 등은 OpenAI LLM으로 처리
+#  다른 파일에서는 이 모듈만 import 해서 공통 유틸처럼 사용
 
 
 import json
@@ -13,7 +15,7 @@ OPENAI_MODEL_JSON = "gpt-4.1-mini"
 bge_model = SentenceTransformer("BAAI/bge-small-en-v1.5")
 
 def get_embedding(text: str) -> list[float]:
-    """텍스트를 1024차원 임베딩으로 변환"""
+    """텍스트를 384차원 임베딩으로 변환"""
     return bge_model.encode(text, normalize_embeddings=True).tolist()
 
 def call_llm_text(system_prompt: str, user_prompt: str, model: str | None = None) -> str:

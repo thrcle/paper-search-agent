@@ -1,5 +1,19 @@
-# 외부 API 보완 모듈
-# 평가 점수가 낮으면 외부 검색 API를 사용하여 추가 정보를 가져옴 
+#   1) 내부 ES/임베딩 기반 검색 실행
+#   2) 관련도 점수(relevance_score)가 낮을 때 /사용자가 "최신", "리뷰" 등 특정 의도를 가질 때
+#   3) 이 모듈에서 외부 API를 agentic하게 선택해서 추가 논문 리스트/정보를 불러옴
+#
+# 구성:
+#   - fetch_external_answer_from_semantic : Semantic Scholar에서 논문 3개 가져오기
+#   - fetch_external_answer_from_openalex : OpenAlex에서 논문 3개 가져오기
+#   - choose_external_strategy            : LLM으로 어떤 API를 쓸지 전략 선택
+#   - agentic_fetch_external_answer       : 전략에 따라 실제로 외부 검색 수행
+#
+# 전략 예시:
+#   - "최신", "recent" → OpenAlex (최신 논문 위주)
+#   - "리뷰", "survey" → Semantic Scholar
+#   - "인용", "citations" → OpenAlex
+#   - relevance_score < 0.5 → 두 API 병행(both)
+#   - relevance_score 높음 → 보완 생략(none)
 
 
 # external_search.py

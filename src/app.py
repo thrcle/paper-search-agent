@@ -34,8 +34,8 @@ AI 기반 연구 논문 검색·추천 에이전트<br>
 # 입력 영역
 # ─────────────────────────────────────
 query = st.text_area(
-    "🔎 연구 주제나 질문을 입력하세요",
-    placeholder="예: 프로프트 성능 향상에 대한 유명한 논문 찾아줘",
+    "🔎 관심 연구 주제나 질문을 입력하세요",
+    placeholder="예: RAG",
     height=80,
 )
 search_btn = st.button("논문 진단하기", use_container_width=True)
