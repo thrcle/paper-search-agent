@@ -180,6 +180,8 @@ RAG의 효율적 Retrieval 개선에 관한 주요 연구는 MAIN-RAG(2024), Sel
 
 ---
 ## 💻 Streamlit UI 구성
+<img width="849" height="551" alt="image" src="https://github.com/user-attachments/assets/cbe02373-57f4-4fb7-9c9b-6e90c3dd034c" />
+
 주요 기능
 * 검색창:	자연어 또는 키워드 질의 입력 (예: “LLM 관련 최신 논문”)
 * AI 진단:	질의 유형, 전략, 관련도 점수, 검색 경로 표시
