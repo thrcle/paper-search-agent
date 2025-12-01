@@ -16,6 +16,10 @@ st.set_page_config(
 if "memory" not in st.session_state:
     st.session_state["memory"] = []  # run_query에 넘길 메모리
 
+# 마지막 판단 로그 저장용
+if "last_trace" not in st.session_state:
+    st.session_state["last_trace"] = []    
+
 # ─────────────────────────────────────
 # 상단 헤더
 # ─────────────────────────────────────
@@ -72,9 +76,14 @@ if search_btn and query.strip():
     relevance = state.get("relevance_score", None) if state else None
     rel_str = f"{relevance:.2f}" if isinstance(relevance, (int, float)) else "N/A"
 
+    # 판단 로그 가져오기
+    trace = state.get("reasoning_trace", []) if state else []
+    st.session_state["last_trace"] = trace
+
+
     # ───────── 왼쪽: AI 진단 + 진료기록 토글 ─────────
     with left_col:
-        st.markdown("### 🤖 AI 진단")
+        st.markdown("### 🩺 AI 진단")
 
         st.markdown(
             f"""
@@ -94,7 +103,7 @@ if search_btn and query.strip():
 
             if llm_decision or external_strategy:
                 
-                st.markdown("**🤖 LLM 판단 요약**")
+                st.markdown("**LLM 판단 요약**")
                 if llm_decision:
                     st.markdown(
                         f"<div style='color:#444; font-size:13px; padding-left:8px;'>🧠 {llm_decision}</div>",
@@ -105,6 +114,14 @@ if search_btn and query.strip():
                         f"<div style='color:#666; font-size:13px; padding-left:8px;'>🌐 External Search: <b>{external_strategy}</b></div>",
                         unsafe_allow_html=True,
                     )
+            # 🔹 여기: 판단 로그 토글 추가
+            trace = state.get("reasoning_trace", []) or []
+            with st.expander("🧠 판단 로그 보기", expanded=False):
+                if trace:
+                    for i, line in enumerate(trace, start=1):
+                        st.markdown(f"**{i}.** {line}")
+                else:
+                    st.info("이번 턴 판단 로그가 없습니다.")
 
         st.markdown("---")
         st.markdown("**진단 단계**")
@@ -189,7 +206,7 @@ if search_btn and query.strip():
 # ─────────────────────────────────────
 else:
     with left_col:
-        st.markdown("### 🧑‍⚕️ AI 진단")
+        st.markdown(f"### 🧑‍⚕️ AI 진단")
         st.write("질문을 입력하고 **논문 진단하기** 버튼을 눌러주세요.")
         st.markdown(
             """
@@ -198,7 +215,9 @@ else:
 3. 키워드로 정밀도 확보  
 """
         )
-
+    # 🔹 검색 전 상태용 판단 로그 토글
+        with st.expander("🧠 판단 로그 보기", expanded=False):
+            st.info("아직 판단 로그가 없습니다. 질문을 입력하고 진단을 실행해 주세요.")
         # 기본 상태에서도 진료기록 토글은 보이게
         memory = st.session_state["memory"]
         with st.expander("📝 진료 기록 보기", expanded=False):
@@ -222,6 +241,64 @@ else:
             else:
                 st.info("아직 저장된 진료 기록이 없습니다.")
 
-    with right_col:
-        st.markdown("### 💊 처방된 논문")
-        st.info("아직 처방된 논문이 없습니다. 질문을 입력해 주세요.")
+    # with right_col:
+    #     st.markdown("### 💊 처방된 논문")
+    #     st.info("아직 처방된 논문이 없습니다. 질문을 입력해 주세요.")
+with right_col:
+    # st.markdown("### 💊 처방된 논문")
+
+    # 메모리 기반 질의인 경우
+    if utter_type == "MEMORY_QUERY":
+        if answer:
+            st.markdown(
+                f"""
+<div style='padding:18px; border-radius:12px; background-color:#f0f7ff; border:1px solid #cfe3ff;'>
+  <b>🧠 이전 진단 기록 기반 응답</b><br>
+  {answer}
+</div>
+""",
+                unsafe_allow_html=True,
+            )
+            st.info("이 질문은 이전 진단 기록(메모리)을 기반으로 답변했어요. 새로운 논문 검색은 수행하지 않았습니다.")
+        else:
+            st.warning("아직 저장된 진료 기록이 없어, 첫 번째 질문을 찾지 못했어요. 먼저 일반 논문 질의를 실행해 주세요.")
+
+    # 일반 검색 질의
+    else:
+        if not top_papers:
+            st.warning("🔍 관련 논문을 찾지 못했습니다.")
+        else:
+            for i, p in enumerate(top_papers, start=1):
+                title = p.get("title", "제목 없음")
+                year = p.get("year", "")
+                citations = p.get("citations", 0)
+                url = p.get("url", "")
+                score = p.get("score", 0.0)
+                preview = (p.get("content") or "").replace("\n", " ")[:200]
+                summary = p.get("summary") or preview
+                score_pct = int(min(max(score, 0.0), 1.0) * 100)
+                if url and not url.startswith("http"):
+                    url = "https://" + url
+
+                st.markdown(
+                    f"""
+<div style="padding:14px 18px; margin-bottom:10px; border-radius:12px; border:1px solid #e5e5e5; background-color:white;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div style="font-size:15px; color:#666;"> 논문 #{i}</div>
+    <div style="font-size:14px; color:#4a6cf7; font-weight:bold;">{score_pct}% <span style="color:#999; font-weight:normal;">의미 기반 매칭</span></div>
+  </div>
+  <div style="margin-top:6px; font-size:18px; font-weight:600;">
+    {f'<a href="{url}" target="_blank" style="text-decoration:none; color:#4a6cf7;">🔗 {title}</a>' if url else title}
+  </div>
+  <div style="margin-top:2px; font-size:13px; color:#777;">
+    {year} · 인용 {citations}
+  </div>
+  <div style="margin-top:8px; padding:8px 10px; background-color:#f7f7ff; border-radius:8px; font-size:13px; color:#555;">
+    {summary}
+  </div>
+</div>
+""",
+                    unsafe_allow_html=True,
+                )
+
+

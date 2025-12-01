@@ -1,7 +1,7 @@
 
 # main_agent.py
 from langgraph.graph import StateGraph, END
-from state import AgentState
+from state import AgentState, append_trace
 from search_agents import (
     classify_utterance_agent,
     strategy_agent,
@@ -28,8 +28,17 @@ def evaluate_answer_agent(state: AgentState) -> AgentState:
     # print("⚠️ 답변 관련도 평가 완료:", score)
     # state["relevance_score"] = score
     # return state
+
+    # 판단 - 로그
+    append_trace(
+        state,
+        f"[evaluate_answer] type={utter_type}, score={score:.4f}, "
+        f"query={query[:40]!r}, answer_snippet={answer[:60]!r}",
+    )
     return {
-        "relevance_score": score
+        "relevance_score": score,
+        "reasoning_trace": state.get("reasoning_trace")  # 추가
+
     }
 
 def external_search_agent(state: AgentState) -> AgentState:
@@ -187,12 +196,12 @@ def run_query(query: str, memory=None, threshold: float = 0.6) -> AgentState:
 if __name__ == "__main__":
     memory = []
     q1 = "RAG 관련 논문 추천"
-    q2 = "llm 관련 논문을 추천해주세요"
+    q2 = "llm 성능을 높이기 위한 방법 알려줘" # NL_TOPIC, hybrid 
     q3 = "내 첫번째 질문이 뭐였지?"       # 메모리 확인용 
-    q4 = "RAG 관련 논문 검색"           # hybrid
-    q5 = "RAG"                      # sparse
+    q4 = "RAG survey 논문"           # SPECIFIC_PAPER,hybrid
+    q5 = "transformer "             # KEYWORD_TOPIC, sparse
     q6 ="RAG 성능 향상 최신 연구 알려줘"
-    # Attention is All You Need 논문 요약해줘
+    
 
     for q in [q1, q2, q3,q4, q5, q6]:
     # for q in [q1]:
